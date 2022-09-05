@@ -6,7 +6,7 @@ function App() {
   const userLanguageRef = useRef('');
   const ratesRef = useRef({});
   const [fromCurrency, setFromCurrency] = useState('');
-  const [toCurrency, setToCurrency] = useState('ET');
+  const [toCurrency, setToCurrency] = useState('');
   const [fromPrice, setFromPrice] = useState('');
   const [toPrice, setToPrice] = useState('');
   
