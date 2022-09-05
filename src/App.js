@@ -1,25 +1,75 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useRef, useState } from 'react';
+import { Block } from './components/Block';
+import './index.scss';
 
 function App() {
+  const userLanguageRef = useRef('');
+  const ratesRef = useRef({});
+  const [fromCurrency, setFromCurrency] = useState('');
+  const [toCurrency, setToCurrency] = useState('ET');
+  const [fromPrice, setFromPrice] = useState('');
+  const [toPrice, setToPrice] = useState('');
+  
+  useEffect(() => {
+    userLanguageRef.current = window.navigator.language.slice(-2).toUpperCase();
+    setFromCurrency(userLanguageRef.current)
+  },[]);
+
+
+  const onChangeFromPrice = (value) => {
+    const price = value / ratesRef.current[fromCurrency];
+    const result = price * ratesRef.current[toCurrency];
+    setToPrice(result.toFixed(3));
+    setFromPrice(value);
+  };
+
+  const onChangeToPrice = (value) => {
+    const result = (ratesRef.current[fromCurrency] / ratesRef.current[toCurrency]) * value;
+    setFromPrice(result.toFixed(3));
+    setToPrice(value);
+  };
+
+  useEffect(() => {
+    fetch('https://cdn.cur.su/api/latest.json')
+    .then((res) => res.json())
+    .then((json) => {
+      ratesRef.current = json.rates;
+      Object.keys(ratesRef.current).forEach(el => {
+        delete Object.assign(ratesRef.current, {[el.slice(0,2)]: ratesRef.current[el]})[el];
+      })
+      userLanguageRef.current = window.navigator.language.slice(-2).toUpperCase();
+      setFromPrice('');
+      setToPrice('');
+    })
+    .catch(err => {
+      console.warn(err);
+      alert('No data');
+    });
+  }, []);
+
+  useEffect(() => {
+    onChangeToPrice(toPrice);
+    onChangeFromPrice(fromPrice);
+  }, [fromCurrency, toCurrency]);
+
+
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Block 
+      value={fromPrice} 
+      currency={fromCurrency} 
+      onChangeCurrency={setFromCurrency} 
+      onChangeValue={onChangeFromPrice}
+      />
+     <Block 
+      value={toPrice} 
+      currency={toCurrency} 
+      onChangeCurrency={setToCurrency} 
+      onChangeValue={onChangeToPrice}
+      />
     </div>
   );
-}
+};
 
 export default App;
